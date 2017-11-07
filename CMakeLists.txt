@@ -53,6 +53,42 @@ if(bison_gcc_warnings)
   foreach(warning -Wundef -pedantic -Wsign-compare -fno-color-diagnostics)
     append_flag_if_supported(warn_tests ${warning} cxx)
   endforeach()
+
+  foreach(flag -Wno-null-conversion -Wno-sign-compare
+               -Wno-zero-as-null-pointer-constant)
+    append_flag_if_supported(flex_cxx_flags ${flag} cxx)
+  endforeach()
+endif()
+
+check_c_source_compiles("
+  #include <limits.h>
+  int test_array[CHAR_BIT]; int main() { return 0; }"
+  c_works)
+if(NOT c_works)
+  message(FATAL_ERROR "C compiler does not work")
+endif()
+
+check_cxx_source_compiles("
+  #include <cstdlib>
+  #include <iostream>
+  #include <map>
+  #include <string>
+  using namespace std;
+  int main()
+  {
+      std::cerr << \"\";
+      cout << \"\";
+      typedef std::pair<unsigned int, int> uipair;
+      std::map<unsigned int, int> m;
+      std::map<unsigned int, int>::iterator i;
+      m.insert (uipair (4, -4));
+      for (i = m.begin (); i != m.end (); ++i)
+          if (i->first != 4)
+              return 1;
+  }"
+  cxx_works)
+if(NOT cxx_works)
+  message(FATAL_ERROR "C++ compiler does not work")
 endif()
 
 option(bison_build_yacc "build a yacc command and an -ly library" ON)
